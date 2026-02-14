@@ -32,7 +32,7 @@ DIAMOND_COLORS = {
 }
 
 # Spielfeld-Einstellungen
-BOARD_SIZE = 8
+BOARD_SIZE = 7
 CELL_SIZE = 100
 BOARD_OFFSET_X = 50
 BOARD_OFFSET_Y = 50

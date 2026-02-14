@@ -11,7 +11,7 @@ class Board:
     BOARD_SIZE x BOARD_SIZE
     """
     
-    def __init__(self, size:int = 8):
+    def __init__(self, size:int = 7):
         """
         Initialisiert das Spielfeld
         
@@ -54,59 +54,65 @@ class Board:
         """
         Prüft, ob ein Plättchen an dieser Position platziert werden kann.
         Regeln:
-        - Erstes Plättchen kann überall hin
-            - NICHT auf Randfelder
+        - Erstes Plättchen kann überall hin AUSSER auf Randfelder
         - weitere Plättchen müssen eine gemeinsame Außenkante mit einem vorhandenen haben
-        
+          (horizontal oder vertikal benachbart, NICHT diagonal)
+
         Args:
             row: Zeile
             col: Spalte
-        
+
         Returns:
             bool: True wenn Platzierung erlaubt
         """
         # Position muss gültig und leer sein
         if not self.is_empty(row, col):
             return False
-        
-        # Erstes Plättchen darf überall hin
+
+        # Erstes Plättchen darf überall hin, ABER NICHT auf Randfelder
         if self.placed_tiles_count == 0:
-            return True
-        
-        # Prüfe ob es eine gemeinsame Ecke mit einem vorhandenen Plättchen gibt
-        # Ecknachbarn: diagonal benachbart
-        corner_neighbors = [
-            (row - 1, col - 1),  # oben links
-            (row - 1, col + 1),  # oben rechts
-            (row + 1, col - 1),  # unten links
-            (row + 1, col + 1)   # unten rechts
+            # Prüfe ob es ein Randfeld ist
+            is_edge = (row == 0 or row == self.size - 1 or
+                      col == 0 or col == self.size - 1)
+            return not is_edge
+
+        # Prüfe ob es eine gemeinsame Kante mit einem vorhandenen Plättchen gibt
+        # Kantennachbarn: horizontal oder vertikal benachbart (NICHT diagonal)
+        edge_neighbors = [
+            (row - 1, col),  # oben
+            (row + 1, col),  # unten
+            (row, col - 1),  # links
+            (row, col + 1)   # rechts
         ]
-        
-        for neighbor_row, neighbor_col in corner_neighbors:
+
+        for neighbor_row, neighbor_col in edge_neighbors:
             if self.is_valid_position(neighbor_row, neighbor_col):
                 if self.grid[neighbor_row][neighbor_col] is not None:
                     return True
-        
+
         return False
     
     def place_tile(self, tile, row, col):
         """
         Platziert ein Plättchen auf dem Spielfeld
-        
+
         Args:
             tile: Tile-Objekt
             row: Zeile
             col: Spalte
-        
+
         Returns:
             bool: True wenn erfolgreich platziert
         """
         if not self.can_place_tile(row, col):
             return False
-        
+
         self.grid[row][col] = tile
         tile.set_position(row, col)
         self.placed_tiles_count += 1
+
+        # Markiere das Feld als besetzt
+        self.placed_tiles[row][col] = 1
         return True
     
     def get_tile(self, row:int, col:int) -> Tile | None:

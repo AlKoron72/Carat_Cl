@@ -101,11 +101,14 @@ class Tile:
     @staticmethod
     def create_tile_set():
         """
-        Erstellt einen kompletten Satz von 36 Plättchen für das Spiel
+        Erstellt einen kompletten Satz von
+        BOARD_SIZE * BOARD_SIZE
+        Plättchen für jedes Spiel
         Jede Kombination sollte theoretisch möglich sein
         """
         tiles = []
-        for _ in range(36):
+        max_tiles = BOARD_SIZE * BOARD_SIZE
+        for _ in range(max_tiles):
             tiles.append(Tile.create_random_tile())
         random.shuffle(tiles)
         return tiles

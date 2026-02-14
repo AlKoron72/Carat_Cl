@@ -5,7 +5,7 @@ from board import Board
 from player import PlayerManager
 from tile import Tile
 from scoring import ScoringSystem
-from constants import GAME_STATE_MENU, GAME_STATE_PLAYING, GAME_STATE_GAME_OVER
+from constants import *
 
 
 class Game:
@@ -22,7 +22,7 @@ class Game:
         """
         self.state = None
         self.player_count = player_count
-        self.board = Board()
+        self.board = Board(BOARD_SIZE)
         self.player_manager = PlayerManager(player_count)
         self.scoring_system = ScoringSystem(self.board, self.player_manager)
         
