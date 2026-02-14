@@ -1,17 +1,17 @@
 """
 Board-Klasse für Spielfeldverwaltung
 """
-from constants import *
 from point_chip import PointChip
 from tile import Tile
 
 
 class Board:
     """
-    Repräsentiert das 7x7 Spielfeld
+    Repräsentiert das Spielfeld
+    BOARD_SIZE x BOARD_SIZE
     """
     
-    def __init__(self, size:int = BOARD_SIZE):
+    def __init__(self, size:int = 8):
         """
         Initialisiert das Spielfeld
         
@@ -52,10 +52,11 @@ class Board:
     
     def can_place_tile(self, row, col):
         """
-        Prüft, ob ein Plättchen an dieser Position platziert werden kann
+        Prüft, ob ein Plättchen an dieser Position platziert werden kann.
         Regeln:
         - Erstes Plättchen kann überall hin
-        - Weitere Plättchen müssen eine gemeinsame Ecke mit einem vorhandenen haben
+            - NICHT auf Randfelder
+        - weitere Plättchen müssen eine gemeinsame Außenkante mit einem vorhandenen haben
         
         Args:
             row: Zeile

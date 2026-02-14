@@ -44,7 +44,7 @@ DIAMOND_RADIUS = TILE_SIZE / 2 - TILE_BORDER_OFFSET*2
 
 # Punktechip-Einstellungen
 CHIP_RADIUS = 30
-CHIP_VALUES = [1]*11 + [2]*11 + [3]*11 + [4]*11 + [5]*11 + [6]*10
+CHIP_VALUES = [1]*11 + [2]*11 + [3]*11 + [4]*11 + [5]*10 + [6]*10
 OFFSET: int = 3
 
 # UI-Einstellungen

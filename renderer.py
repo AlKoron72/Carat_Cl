@@ -2,7 +2,6 @@
 Renderer-Klasse für die grafische Darstellung
 """
 import pygame
-
 from board import Board
 from constants import *
 from game import Game
@@ -39,7 +38,7 @@ class Renderer:
                 y = BOARD_OFFSET_Y + row * CELL_SIZE
                 
                 # Zeichne Zelle
-                pygame.draw.rect(self.screen, LIGHT_GRAY, (x, y, CELL_SIZE, CELL_SIZE), 1)
+                pygame.draw.rect(self.screen, LIGHT_GRAY, (x, y, CELL_SIZE, CELL_SIZE), 3)
                 
                 # Zeichne Punktechip (wenn vorhanden)
                 chip = board.get_chip(row, col)

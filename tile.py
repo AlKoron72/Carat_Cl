@@ -4,7 +4,6 @@ Tile-Klasse für Diamantenplättchen
 import random
 from constants import *
 
-
 class Tile:
     """
     Repräsentiert ein Diamantenplättchen mit 4 Diamanten
@@ -28,7 +27,15 @@ class Tile:
         
         self.position = None  # (row, col) auf dem Spielfeld
         self.owner = None  # Spielerfarbe
-    
+        self.value = self.set_tile_value()
+        self.color_order = []
+        self.set_color_order()
+
+    @staticmethod
+    def set_tile_value() -> int:
+        get_this = random.randint(0, len(CHIP_VALUES)-1)
+        return CHIP_VALUES.pop(get_this)
+
     def get_diamond(self, direction):
         """
         Gibt den Diamantwert in einer bestimmten Richtung zurück
@@ -102,3 +109,17 @@ class Tile:
             tiles.append(Tile.create_random_tile())
         random.shuffle(tiles)
         return tiles
+
+    def set_color_order(self):
+        all_colors = list(PLAYER_COLORS.keys())
+        random.shuffle(all_colors)
+        self.color_order = all_colors
+
+
+if __name__ == "__main__":
+    print(f"länge der CHIP_VALUES: {len(CHIP_VALUES)} - vorher")
+    tiles_to_create = len(CHIP_VALUES)  # Anzahl merken BEVOR iteriert wird
+    for i in range(tiles_to_create):
+        tile = Tile.create_random_tile()
+        print(f"tile {i + 1}: {tile.value} -- ({tile.color_order})")
+    print(f"länge der CHIP_VALUES: {len(CHIP_VALUES)} - nachher")
