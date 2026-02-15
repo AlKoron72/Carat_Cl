@@ -27,23 +27,37 @@ class Renderer:
     
     def draw_board(self, board):
         """
-        Zeichnet das Spielfeld mit Gitternetz
-        
+        Zeichnet das Spielfeld-Gitternetz (ohne Chips)
+
         Args:
             board: Board-Objekt
         """
+        # Zeichne das Tile-Raster
         for row in range(board.size):
             for col in range(board.size):
                 x = BOARD_OFFSET_X + col * CELL_SIZE
                 y = BOARD_OFFSET_Y + row * CELL_SIZE
-                
+
                 # Zeichne Zelle
                 pygame.draw.rect(self.screen, LIGHT_GRAY, (x, y, CELL_SIZE, CELL_SIZE), 3)
-                
-                # Zeichne Punktechip (wenn vorhanden)
+
+    def draw_chips(self, board):
+        """
+        Zeichnet die Punktechips an den Ecken der Tiles
+        Sollte als letztes aufgerufen werden, damit Chips im Vordergrund bleiben
+
+        Args:
+            board: Board-Objekt
+        """
+        # Zeichne Punktechips an den Ecken (board.size+1 x board.size+1 Raster)
+        for row in range(board.size + 1):
+            for col in range(board.size + 1):
                 chip = board.get_chip(row, col)
                 if chip and not chip.is_collected():
-                    self._draw_chip(chip, x + CELL_SIZE // 2, y + CELL_SIZE // 2)
+                    # Chips sitzen an den Ecken der Tiles
+                    x = BOARD_OFFSET_X + col * CELL_SIZE
+                    y = BOARD_OFFSET_Y + row * CELL_SIZE
+                    self._draw_chip(chip, x, y)
     
     def draw_tiles(self, board:Board) -> None:
         """
@@ -60,59 +74,22 @@ class Renderer:
                     y = BOARD_OFFSET_Y + row * CELL_SIZE + 2
                     self._draw_tile(tile, x, y)
     
-    def _draw_tile(self, tile:Tile, x:int, y:int) -> None:
+    def _draw_tile(self, tile:Tile, x:int, y:int, surface:pygame.Surface=None) -> None:
         """
-        Zeichnet ein einzelnes Plättchen
-        
+        Zeichnet ein einzelnes Plättchen mit Caching
+
         Args:
             tile: Tile-Objekt
             x: X-Position (Pixel)
             y: Y-Position (Pixel)
+            surface: Optionale Surface für Animation (wenn None, wird tile.render() verwendet)
         """
-        # Hintergrund des Plättchens (Spielerfarbe)
-        if tile.owner:
-            bg_color = PLAYER_COLORS[tile.owner]
-            # Leicht transparent machen
-            s = pygame.Surface((TILE_SIZE, TILE_SIZE))
-            s.set_alpha(100)
-            s.fill(bg_color)
-            self.screen.blit(s, (x, y))
-        
-        # Rahmen
-        pygame.draw.rect(self.screen, BLACK, (x, y, TILE_SIZE, TILE_SIZE), 2)
-        
-        # Zeichne die 4 Diamanten an den Positionen
-        # oben links
-        self._draw_diamond(
-            x + TILE_BORDER_OFFSET,
-            y + TILE_BORDER_OFFSET,
-            tile.get_color('top'),
-            'oben_links'
-        )
+        if surface is None:
+            # Verwende gecachte Surface vom Tile
+            surface = tile.render()
 
-        # Oben Rechts
-        self._draw_diamond(
-            x + TILE_SIZE - DIAMOND_RADIUS - TILE_BORDER_OFFSET*2,
-            y + TILE_BORDER_OFFSET,
-            tile.get_color('right'),
-            'oben_rechts'
-        )
-
-        # Unten Rechts
-        self._draw_diamond(
-            x + TILE_SIZE - DIAMOND_RADIUS - TILE_BORDER_OFFSET*2,
-            y + TILE_SIZE // 2,
-            tile.get_color('bottom'),
-            'unten_rechts'
-        )
-
-        # Unten Links
-        self._draw_diamond(
-            x + TILE_BORDER_OFFSET,
-            y + TILE_SIZE // 2,
-            tile.get_color('left'),
-            'unten_links'
-        )
+        # Blitte die Surface auf den Screen
+        self.screen.blit(surface, (x, y))
     
     def _draw_diamond(self, x:int, y:int, color, direction:str='oben_links'):
         """
@@ -204,7 +181,7 @@ class Renderer:
     def draw_preview_tile(self, tile:Tile, mouse_pos:tuple[int, int]):
         """
         Zeichnet eine Vorschau des Plättchens an der Mausposition
-        
+
         Args:
             tile: Tile-Objekt
             mouse_pos: (x, y) Mausposition
@@ -212,19 +189,20 @@ class Renderer:
         x, y = mouse_pos
         x -= TILE_SIZE // 2
         y -= TILE_SIZE // 2
-        
-        # Semi-transparent
-        s = pygame.Surface((TILE_SIZE, TILE_SIZE))
-        s.set_alpha(150)
-        
-        # Zeichne Plättchen auf Surface
-        if tile.owner:
-            s.fill(PLAYER_COLORS[tile.owner])
+
+        # Wenn Animation läuft, verwende animierte Surface
+        if tile.is_animating:
+            tile_surface = tile.get_animated_surface().copy()
+            # Zentriere die rotierte Surface
+            offset_x = (tile_surface.get_width() - TILE_SIZE) // 2
+            offset_y = (tile_surface.get_height() - TILE_SIZE) // 2
+            tile_surface.set_alpha(150)
+            self.screen.blit(tile_surface, (x - offset_x, y - offset_y))
         else:
-            s.fill(WHITE)
-        
-        self.screen.blit(s, (x, y))
-        self._draw_tile(tile, x, y)
+            # Hole gerenderte Surface
+            tile_surface = tile.render().copy()
+            tile_surface.set_alpha(150)
+            self.screen.blit(tile_surface, (x, y))
     
     def draw_player_info(self, game):
         """
@@ -269,22 +247,31 @@ class Renderer:
     def draw_current_tile(self, tile:Tile) -> None:
         """
         Zeichnet das aktuelle Plättchen in einer separaten Vorschau
-        
+
         Args:
             tile: Tile-Objekt
         """
         preview_x = BOARD_OFFSET_X + BOARD_SIZE * CELL_SIZE + 50
         preview_y = 500
-        
+
         # Überschrift
         title = self.font.render("Aktuelles Plättchen:", True, BLACK)
         self.screen.blit(title, (preview_x, preview_y))
-        
-        # Plättchen
+
+        # Plättchen mit Animation
         tile_x = preview_x + 50
         tile_y = preview_y + 40
-        self._draw_tile(tile, tile_x, tile_y)
-        
+
+        # Wenn Animation läuft, verwende animierte Surface
+        if tile.is_animating:
+            animated_surface = tile.get_animated_surface()
+            # Zentriere die rotierte Surface (sie kann größer sein)
+            offset_x = (animated_surface.get_width() - TILE_SIZE) // 2
+            offset_y = (animated_surface.get_height() - TILE_SIZE) // 2
+            self.screen.blit(animated_surface, (tile_x - offset_x, tile_y - offset_y))
+        else:
+            self._draw_tile(tile, tile_x, tile_y)
+
         # Hinweis
         hint = self.font.render("R: Drehen →", True, DARK_GRAY)
         self.screen.blit(hint, (preview_x, tile_y + TILE_SIZE + 20))

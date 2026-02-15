@@ -62,23 +62,25 @@ class PointChip:
     @staticmethod
     def place_chips_on_board(board_size:int = constants.BOARD_SIZE):
         """
-        Erstellt und platziert Chips auf einem Spielfeld
-        
+        Erstellt und platziert Chips auf einem Spielfeld an den Ecken der Tiles
+        Die Chips werden in einem (board_size+1) x (board_size+1) Raster platziert
+
         Args:
-            board_size: Größe des Spielfelds (Standard: 7x7)
-        
+            board_size: Größe des Spielfelds (Standard: 7x7 Tiles = 8x8 Ecken)
+
         Returns:
             dict: Dictionary mit (row, col) als Key und PointChip als Value
         """
         chips = PointChip.create_chip_set()
         chip_positions = {}
-        
+
         chip_index = 0
-        for row in range(board_size):
-            for col in range(board_size):
+        # Chips werden an den Ecken platziert: (board_size+1) x (board_size+1)
+        for row in range(board_size + 1):
+            for col in range(board_size + 1):
                 if chip_index < len(chips):
                     chips[chip_index].set_position(row, col)
                     chip_positions[(row, col)] = chips[chip_index]
                     chip_index += 1
-        
+
         return chip_positions

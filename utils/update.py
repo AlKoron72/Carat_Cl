@@ -10,4 +10,6 @@ def update(game_instance):
     Args:
         game_instance: CaratGame-Instanz
     """
-    pass
+    # Update Animation des aktuellen Tiles
+    if game_instance.game and game_instance.game.selected_tile:
+        game_instance.game.selected_tile.update_animation()

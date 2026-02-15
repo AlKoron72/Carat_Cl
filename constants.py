@@ -59,6 +59,9 @@ GAME_STATE_MENU = "menu"
 GAME_STATE_PLAYING = "playing"
 GAME_STATE_GAME_OVER = "game_over"
 
+# Animations-Einstellungen
+ROTATION_ANIMATION_DURATION = 250  # Millisekunden (0.25s)
+
 if __name__ == "__main__":
     print("Chip-Values: ", CHIP_VALUES, len(CHIP_VALUES), "\n")
     print("DIAMOND_COLORS: ", DIAMOND_COLORS, len(DIAMOND_COLORS), "\n")
