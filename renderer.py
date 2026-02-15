@@ -2,6 +2,7 @@
 Renderer-Klasse für die grafische Darstellung
 """
 import pygame
+import pygame.gfxdraw
 from board import Board
 from constants import *
 from game import Game
@@ -53,7 +54,7 @@ class Renderer:
         for row in range(board.size + 1):
             for col in range(board.size + 1):
                 chip = board.get_chip(row, col)
-                if chip and not chip.is_collected():
+                if chip:
                     # Chips sitzen an den Ecken der Tiles
                     x = BOARD_OFFSET_X + col * CELL_SIZE
                     y = BOARD_OFFSET_Y + row * CELL_SIZE
@@ -147,22 +148,79 @@ class Renderer:
     
     def _draw_chip(self, chip:PointChip, x:int, y:int) -> None:
         """
-        Zeichnet einen Punktechip
-        
+        Zeichnet einen Punktechip mit optionaler prozentualer Verteilung
+        Ebenen (von unten nach oben): Schatten -> Tortendiagramm -> Dunkelgrauer Hintergrund -> Grauer Rand -> Zahl
+
         Args:
             chip: PointChip-Objekt
             x: X-Position (Pixel)
             y: Y-Position (Pixel)
         """
-        # Kreis
-        pygame.draw.circle(self.screen, BLACK, (x+OFFSET, y+OFFSET), CHIP_RADIUS)
-        pygame.draw.circle(self.screen, DARK_GRAY, (x, y), CHIP_RADIUS)
-        pygame.draw.circle(self.screen, LIGHT_GRAY, (x, y), CHIP_RADIUS, 4)
-        
-        # Wert
+        x = int(x)
+        y = int(y)
+        radius = int(CHIP_RADIUS)
+
+        # Ebene 1 (ganz unten): Schatten mit Anti-Aliasing
+        pygame.gfxdraw.filled_circle(self.screen, x+OFFSET, y+OFFSET, radius, BLACK)
+        pygame.gfxdraw.aacircle(self.screen, x+OFFSET, y+OFFSET, radius, BLACK)
+
+        # Ebene 2: Tortendiagramm im Hintergrund (größer)
+        if chip.distribution:
+            distribution_radius = int(CHIP_RADIUS + POINTS_DISTRIBUTION_BORDER)
+            start_angle = 0
+            for color, percentage in chip.distribution.items():
+                if percentage > 0:
+                    angle = percentage * 360  # Winkel in Grad
+                    self._draw_pie_slice(x, y, distribution_radius, start_angle, angle, PLAYER_COLORS[color])
+                    start_angle += angle
+
+        # Ebene 3: Dunkelgrauer Hintergrund (Hauptkreis) mit Anti-Aliasing
+        pygame.gfxdraw.filled_circle(self.screen, x, y, radius, DARK_GRAY)
+        pygame.gfxdraw.aacircle(self.screen, x, y, radius, DARK_GRAY)
+
+        # Ebene 4: Grauer Rand mit Anti-Aliasing (mehrere Kreise für Dicke)
+        for i in range(4):
+            pygame.gfxdraw.aacircle(self.screen, x, y, radius - i, LIGHT_GRAY)
+
+        # Ebene 5 (ganz oben): Zahl
         text = self.font.render(str(chip.value), True, WHITE)
         text_rect = text.get_rect(center=(x, y))
         self.screen.blit(text, text_rect)
+
+    def _draw_pie_slice(self, x:int, y:int, radius:int, start_angle:float, angle_size:float, color:tuple) -> None:
+        """
+        Zeichnet ein Tortenstück mit Anti-Aliasing
+
+        Args:
+            x, y: Mittelpunkt
+            radius: Radius
+            start_angle: Startwinkel in Grad (0 = oben)
+            angle_size: Größe des Winkels in Grad
+            color: RGB-Farbe
+        """
+        import math
+
+        # Konvertiere zu Radiant (pygame verwendet Radiant für Winkel)
+        # -90 damit 0° oben ist statt rechts
+        start_rad = math.radians(start_angle - 90)
+        end_rad = math.radians(start_angle + angle_size - 90)
+
+        # Erstelle Polygon-Punkte für das Tortenstück
+        points = [(x, y)]  # Mittelpunkt
+
+        # Generiere mehr Punkte für glattere Kanten
+        steps = max(10, int(angle_size / 2))  # Deutlich mehr Steps für glattere Kurven
+        for i in range(steps + 1):
+            angle = start_rad + (end_rad - start_rad) * i / steps
+            point_x = x + radius * math.cos(angle)
+            point_y = y + radius * math.sin(angle)
+            points.append((point_x, point_y))
+
+        # Zeichne das gefüllte Tortenstück
+        pygame.gfxdraw.filled_polygon(self.screen, points, color)
+
+        # Zeichne geglätteten Rand um das Tortenstück
+        pygame.gfxdraw.aapolygon(self.screen, points, color)
     
     def draw_valid_positions(self, valid_positions):
         """

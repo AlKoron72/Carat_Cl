@@ -15,17 +15,18 @@ class PointChip:
     def __init__(self, value:int):
         """
         Initialisiert einen Punktechip
-        
+
         Args:
             value: Punktwert (1-5)
         """
         if value not in [1, 2, 3, 4, 5, 6]:
             raise ValueError("Punktwert muss zwischen 1 und 6 liegen")
-        
+
         self.value = value
         self.position = None  # (row, col) auf dem Spielfeld
         self.collected = False
         self.collected_by = None  # Spielerfarbe
+        self.distribution = {}  # Prozentuale Verteilung: {'red': 0.6, 'blue': 0.4}
     
     def set_position(self, row:int, col:int):
         """Setzt die Position des Chips auf dem Spielfeld"""
@@ -80,7 +81,36 @@ class PointChip:
             for col in range(board_size + 1):
                 if chip_index < len(chips):
                     chips[chip_index].set_position(row, col)
+
+                    # TEST: Füge zu einigen Chips zufällige Verteilungen hinzu
+                    if chip_index % 3 == 0:  # Jeder 3. Chip bekommt eine Verteilung
+                        PointChip._add_test_distribution(chips[chip_index], chip_index)
+
                     chip_positions[(row, col)] = chips[chip_index]
                     chip_index += 1
 
         return chip_positions
+
+    @staticmethod
+    def _add_test_distribution(chip, index):
+        """
+        Fügt Test-Verteilungen zu Chips hinzu (nur für Demonstration)
+
+        Args:
+            chip: PointChip-Objekt
+            index: Index des Chips für verschiedene Varianten
+        """
+        available_colors = list(constants.PLAYER_COLORS.keys())
+
+        # Verschiedene Verteilungs-Muster
+        patterns = [
+            {'red': 0.6, 'blue': 0.2, 'green': 0.2},  # Rot dominant
+            {'blue': 0.5, 'yellow': 0.5},  # 50/50
+            {'green': 0.4, 'red': 0.3, 'blue': 0.3},  # Relativ gleichmäßig
+            {'yellow': 1.0},  # Komplett eine Farbe
+            {'red': 0.25, 'blue': 0.25, 'green': 0.25, 'yellow': 0.25},  # Alle gleich
+            {'red': 0.7, 'green': 0.3},  # Zwei Farben
+            {'blue': 0.8, 'red': 0.1, 'yellow': 0.1},  # Blau dominant mit kleinen Anteilen
+        ]
+
+        chip.distribution = patterns[index % len(patterns)]
