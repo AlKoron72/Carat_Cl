@@ -36,8 +36,7 @@ class PointChip:
         """Setzt die Position des Chips auf dem Spielfeld"""
         self.position = (row, col)
 
-        #b_size = constants.BOARD_SIZE -1 # diagonal umgebende Felder
-        b_size = constants.BOARD_SIZE    # diagonal umgebende Felder
+        b_size = constants.BOARD_SIZE # diagonal umgebende Felder
         if row == 0 and col == 0 or row == 0 and col == b_size or row == b_size and col == 0 or row == b_size and col == b_size:
             self.surrounding_pieces = 1
         elif row == 0 or row == b_size or col == 0 or col == b_size:
