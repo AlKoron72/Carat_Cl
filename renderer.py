@@ -297,22 +297,27 @@ class Renderer:
     def draw_player_info(self, game):
         """
         Zeichnet Spielerinformationen (Punktestand, aktueller Spieler)
-        
+
         Args:
             game: Game-Objekt
         """
         info_x = BOARD_OFFSET_X + BOARD_SIZE * CELL_SIZE + 50
         info_y = BOARD_OFFSET_Y
-        
+
         # Überschrift
         title = self.title_font.render("Spieler", True, BLACK)
         self.screen.blit(title, (info_x, info_y))
         info_y += 50
-        
-        # Spielerinformationen
-        for i, player in enumerate(game.player_manager.players):
+
+        # Trenne echte Spieler und NPCs
+        real_players = [p for p in game.player_manager.players if not p.is_npc]
+        npcs = [p for p in game.player_manager.players if p.is_npc]
+
+        # Zeichne echte Spieler
+        for i, player in enumerate(real_players):
+            player_index = game.player_manager.players.index(player)
             is_current = player == game.get_current_player()
-            is_starting = game.player_manager.is_starting_player(i)
+            is_starting = game.player_manager.is_starting_player(player_index)
 
             # Spielerfarbe
             circle_x = info_x + 20
@@ -334,12 +339,35 @@ class Renderer:
 
             player_text = self.font.render(text, True, color)
             self.screen.blit(player_text, (info_x + 45, info_y))
-            
+
             # Verbleibende Plättchen
             tiles_text = self.font.render(f"Plättchen: {player.get_tile_count()}", True, BLACK)
             self.screen.blit(tiles_text, (info_x + 45, info_y + 25))
-            
+
             info_y += 70
+
+        # Trennlinie wenn NPCs vorhanden
+        if npcs:
+            line_width = 250
+            pygame.draw.line(self.screen, DARK_GRAY, (info_x, info_y), (info_x + line_width, info_y), 2)
+            info_y += 20
+
+            # Zeichne NPCs
+            for player in npcs:
+                # Spielerfarbe
+                circle_x = info_x + 20
+                circle_y = info_y + 15
+                pygame.draw.circle(self.screen, PLAYER_COLORS[player.color],
+                                 (circle_x, circle_y), 15)
+
+                # Name und Punktzahl (ohne aktuelle Spieler-Markierung)
+                text = f"{player.name}: {player.score} Punkte"
+                player_text = self.font.render(text, True, DARK_GRAY)
+                self.screen.blit(player_text, (info_x + 45, info_y))
+
+                # Keine Plättchen-Anzeige für NPCs
+
+                info_y += 50
     
     def draw_current_tile(self, tile:Tile) -> None:
         """
@@ -396,16 +424,36 @@ class Renderer:
         # Rangliste
         y = 250
         leaderboard = game.get_leaderboard()
-        
-        for i, player in enumerate(leaderboard):
+
+        # Echte Spieler
+        for i, player in enumerate(leaderboard['players']):
             rank_text = f"{i+1}. {player.name}: {player.score} Punkte"
             color = PLAYER_COLORS[player.color]
-            
+
             text = self.font.render(rank_text, True, color)
             text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, y))
             self.screen.blit(text, text_rect)
-            
+
             y += 40
+
+        # Trennlinie wenn NPCs vorhanden
+        if leaderboard['npcs']:
+            y += 20
+            line_width = 300
+            line_x = (WINDOW_WIDTH - line_width) // 2
+            pygame.draw.line(self.screen, WHITE, (line_x, y), (line_x + line_width, y), 2)
+            y += 40
+
+            # NPCs
+            for player in leaderboard['npcs']:
+                rank_text = f"{player.name}: {player.score} Punkte"
+                color = PLAYER_COLORS[player.color]
+
+                text = self.font.render(rank_text, True, color)
+                text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, y))
+                self.screen.blit(text, text_rect)
+
+                y += 40
         
         # Neustart-Hinweis
         hint = self.font.render("Drücke SPACE für ein neues Spiel", True, WHITE)
