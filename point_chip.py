@@ -24,13 +24,23 @@ class PointChip:
 
         self.value = value
         self.position = None  # (row, col) auf dem Spielfeld
+        self.surrounding_pieces = 0  # bestimmt, wann ein Teil gewertet wird
         self.collected = False
         self.collected_by = None  # Spielerfarbe
-        self.distribution = {}  # Prozentuale Verteilung: {'red': 0.6, 'blue': 0.4}
+        self.distribution = {}  # Akkumulierte Werte: {'red': 12, 'blue': 8}
+        self.distribution_preview = None  # Prozentuale Verteilung für Anzeige (inkl. Vorschau)
     
     def set_position(self, row:int, col:int):
         """Setzt die Position des Chips auf dem Spielfeld"""
         self.position = (row, col)
+
+        b_size = constants.BOARD_SIZE -1 # diagonal umgebende Felder
+        if row == 0 and col == 0 or row == 0 and col == b_size or row == b_size and col == 0 or row == b_size and col == b_size:
+            self.surrounding_pieces = 1
+        elif row == 0 or row == b_size or col == 0 or col == b_size:
+            self.surrounding_pieces = 2
+        else:
+            self.surrounding_pieces = 4
     
     def collect(self, player_color):
         """
@@ -82,15 +92,17 @@ class PointChip:
                 if chip_index < len(chips):
                     chips[chip_index].set_position(row, col)
 
+                    '''
                     # TEST: Füge zu einigen Chips zufällige Verteilungen hinzu
                     if chip_index % 3 == 0:  # Jeder 3. Chip bekommt eine Verteilung
                         PointChip._add_test_distribution(chips[chip_index], chip_index)
-
+                    '''
                     chip_positions[(row, col)] = chips[chip_index]
                     chip_index += 1
 
         return chip_positions
 
+    # --- Testing only ---
     @staticmethod
     def _add_test_distribution(chip, index):
         """

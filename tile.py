@@ -78,16 +78,19 @@ class Tile:
             animate: Wenn True, wird Animation gestartet
         """
         if animate and not self.is_animating:
-            # Starte Animation
+            # Starte Animation - Rotation wird in update_animation() durchgeführt
             self.is_animating = True
             self.animation_start_time = pygame.time.get_ticks()
             self.animation_start_angle = 0
             self.animation_target_angle = -90  # Clockwise = negativ
             self.animation_direction = 1
-        else:
+        elif not self.is_animating:
             # Direkte Rotation ohne Animation
             self.diamonds = [self.diamonds[3], self.diamonds[0],
                             self.diamonds[1], self.diamonds[2]]
+            # Rotiere auch color_order im Uhrzeigersinn
+            self.color_order = [self.color_order[3], self.color_order[0],
+                               self.color_order[1], self.color_order[2]]
             self._surface_needs_update = True
 
     def rotate_counter_clockwise(self, animate=True):
@@ -98,16 +101,19 @@ class Tile:
             animate: Wenn True, wird Animation gestartet
         """
         if animate and not self.is_animating:
-            # Starte Animation
+            # Starte Animation - Rotation wird in update_animation() durchgeführt
             self.is_animating = True
             self.animation_start_time = pygame.time.get_ticks()
             self.animation_start_angle = 0
             self.animation_target_angle = 90  # Counter-clockwise = positiv
             self.animation_direction = -1
-        else:
+        elif not self.is_animating:
             # Direkte Rotation ohne Animation
             self.diamonds = [self.diamonds[1], self.diamonds[2],
                             self.diamonds[3], self.diamonds[0]]
+            # Rotiere auch color_order gegen den Uhrzeigersinn
+            self.color_order = [self.color_order[1], self.color_order[2],
+                               self.color_order[3], self.color_order[0]]
             self._surface_needs_update = True
     
     def get_color(self, position):
@@ -223,6 +229,12 @@ class Tile:
             'unten_links'
         )
 
+        # Zeichne den Tile-Wert in der Mitte
+        font = pygame.font.Font(None, 36)
+        text = font.render(str(self.value), True, WHITE)
+        text_rect = text.get_rect(center=(TILE_SIZE // 2, TILE_SIZE // 2))
+        surface.blit(text, text_rect)
+
         # Surface cachen
         self._cached_surface = surface
         self._surface_needs_update = False
@@ -302,9 +314,13 @@ class Tile:
             if self.animation_direction == 1:
                 self.diamonds = [self.diamonds[3], self.diamonds[0],
                                 self.diamonds[1], self.diamonds[2]]
+                self.color_order = [self.color_order[3], self.color_order[0],
+                                   self.color_order[1], self.color_order[2]]
             else:
                 self.diamonds = [self.diamonds[1], self.diamonds[2],
                                 self.diamonds[3], self.diamonds[0]]
+                self.color_order = [self.color_order[1], self.color_order[2],
+                                   self.color_order[3], self.color_order[0]]
 
             self._surface_needs_update = True
             return False

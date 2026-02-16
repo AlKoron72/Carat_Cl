@@ -165,10 +165,12 @@ class Renderer:
         pygame.gfxdraw.aacircle(self.screen, x+OFFSET, y+OFFSET, radius, BLACK)
 
         # Ebene 2: Tortendiagramm im Hintergrund (größer)
-        if chip.distribution:
+        # Verwende distribution_preview (enthält Prozente) statt distribution (enthält Rohwerte)
+        display_distribution = chip.distribution_preview if chip.distribution_preview else None
+        if display_distribution:
             distribution_radius = int(CHIP_RADIUS + POINTS_DISTRIBUTION_BORDER)
             start_angle = 0
-            for color, percentage in chip.distribution.items():
+            for color, percentage in display_distribution.items():
                 if percentage > 0:
                     angle = percentage * 360  # Winkel in Grad
                     self._draw_pie_slice(x, y, distribution_radius, start_angle, angle, PLAYER_COLORS[color])

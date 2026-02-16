@@ -113,6 +113,33 @@ class Board:
 
         # Markiere das Feld als besetzt
         self.placed_tiles[row][col] = 1
+
+        # Aktualisiere die distribution der 4 Ecken-Chips
+        # Jede Ecke entspricht einer Position im color_order
+        chip_data = [
+            ((row, col), 0),         # oben links -> color_order[0]
+            ((row, col + 1), 1),     # oben rechts -> color_order[1]
+            ((row + 1, col + 1), 2), # unten rechts -> color_order[2]
+            ((row + 1, col), 3)      # unten links -> color_order[3]
+        ]
+
+        for (chip_row, chip_col), color_index in chip_data:
+            chip = self.get_chip(chip_row, chip_col)
+            if chip:
+                color = tile.color_order[color_index]
+                # Füge den tile.value zur entsprechenden Farbe hinzu
+                if color in chip.distribution:
+                    chip.distribution[color] += tile.value
+                else:
+                    chip.distribution[color] = tile.value
+
+        # Berechne Distribution-Prozente für alle betroffenen Chips
+        from utils.update import recalculate_chip_distribution
+        for (chip_row, chip_col), _ in chip_data:
+            chip = self.get_chip(chip_row, chip_col)
+            if chip:
+                recalculate_chip_distribution(chip)
+
         return True
     
     def get_tile(self, row:int, col:int) -> Tile | None:
