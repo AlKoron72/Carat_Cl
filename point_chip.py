@@ -23,8 +23,10 @@ class PointChip:
             raise ValueError("Punktwert muss zwischen 1 und 6 liegen")
 
         self.value = value
+        self.score = 0
         self.position = None  # (row, col) auf dem Spielfeld
         self.surrounding_pieces = 0  # bestimmt, wann ein Teil gewertet wird
+        self.placed_surrounding_pieces = 0
         self.collected = False
         self.collected_by = None  # Spielerfarbe
         self.distribution = {}  # Akkumulierte Werte: {'red': 12, 'blue': 8}
@@ -34,7 +36,8 @@ class PointChip:
         """Setzt die Position des Chips auf dem Spielfeld"""
         self.position = (row, col)
 
-        b_size = constants.BOARD_SIZE -1 # diagonal umgebende Felder
+        #b_size = constants.BOARD_SIZE -1 # diagonal umgebende Felder
+        b_size = constants.BOARD_SIZE    # diagonal umgebende Felder
         if row == 0 and col == 0 or row == 0 and col == b_size or row == b_size and col == 0 or row == b_size and col == b_size:
             self.surrounding_pieces = 1
         elif row == 0 or row == b_size or col == 0 or col == b_size:
@@ -51,6 +54,7 @@ class PointChip:
         """
         self.collected = True
         self.collected_by = player_color
+        self.score = self.value * len(self.distribution)
     
     def is_collected(self):
         """Prüft, ob der Chip bereits eingesammelt wurde"""

@@ -90,8 +90,16 @@ class Game:
             current_player.remove_tile(self.selected_tile)
             
             # Prüfe auf vollständige Zeilen/Spalten und vergebe Punkte
-            scoring_result = self.scoring_system.check_and_score_lines()
-            
+            # --- old --- scoring_result = self.scoring_system.check_and_score_lines()
+
+            # umgebende Chips für x, y
+            print(f"Umgebende Chips für ({row} / {col}):")
+            chip_1 = self.board.get_chip(row, col)
+            chip_2 = self.board.get_chip(row, col+1)
+            chip_3 = self.board.get_chip(row+1, col)
+            chip_4 = self.board.get_chip(row+1, col+1)
+            self.scoring_system.check_for_scores([chip_1, chip_2, chip_3, chip_4])
+
             # Prüfe ob Spiel zu Ende ist
             if self._is_game_over():
                 self._end_game()

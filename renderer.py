@@ -215,8 +215,8 @@ class Renderer:
         steps = max(10, int(angle_size / 2))  # Deutlich mehr Steps für glattere Kurven
         for i in range(steps + 1):
             angle = start_rad + (end_rad - start_rad) * i / steps
-            point_x = x + radius * math.cos(angle)
-            point_y = y + radius * math.sin(angle)
+            point_x = int(x + radius * math.cos(angle))
+            point_y = int(y + radius * math.sin(angle))
             points.append((point_x, point_y))
 
         # Zeichne das gefüllte Tortenstück

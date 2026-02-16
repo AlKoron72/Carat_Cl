@@ -1,6 +1,7 @@
 """
 Wertungssystem für Carat
 """
+from point_chip import PointChip
 
 
 class ScoringSystem:
@@ -57,111 +58,44 @@ class ScoringSystem:
             'cols': completed['cols'],
             'points': points_awarded
         }
-    
+
+    def check_for_scores(self, chips: list[PointChip]) -> None:
+        """
+        checks if any of the points chips need to be scored
+        by player/s
+        """
+        print("------------- checking for scores -------------")
+        for chip in chips:
+            chip.placed_surrounding_pieces += 1
+            print(f"Value (oben links): {chip.surrounding_pieces} -> {chip.distribution}")
+            if chip.placed_surrounding_pieces == chip.surrounding_pieces:
+                print(f"please score this chip {chip.position}")
+                # implement score here
+                # at this point player-color not in play produce errors
+                # because the need for NPC-colors is not yet implemented
+            if chip.surrounding_pieces == 1: # wenn es sich um eines der Eckfelder handelt
+                print(f"Chip {chip} is complete")
+                #spieler = _get_player_by_color(chip.distribution.key)
+                for key in chip.distribution.keys():
+                    print(f"Key: {key}")
+                    chip.collect(key)
+                print(f"Collected: {chip.collected}")
+                print(f"Collected by: {chip.collected_by}")
+                print(f"SCORE: {chip.score}")
+                add_score_for_player = self._get_player_by_color(chip.collected_by)
+                add_score_for_player.score += chip.score
+
     def _score_row(self, row):
         """
-        Berechnet Punkte für eine vollständige Zeile
-        
-        Args:
-            row: Zeilen-Index
-        
-        Returns:
-            dict: {player_color: points}
+        old --- needs deletion
         """
-        color_counts = {}
-        
-        # Zähle Diamanten jeder Farbe in der Zeile
-        for col in range(self.board.size):
-            tile = self.board.get_tile(row, col)
-            if tile:
-                # Zähle die Diamanten die zur Zeile beitragen (oben und unten)
-                top_value = tile.get_diamond('top')
-                bottom_value = tile.get_diamond('bottom')
-                
-                color_counts[top_value] = color_counts.get(top_value, 0) + 1
-                color_counts[bottom_value] = color_counts.get(bottom_value, 0) + 1
-        
-        # Ermittle die dominante Farbe (höchste Anzahl)
-        if not color_counts:
-            return {}
-        
-        max_count = max(color_counts.values())
-        dominant_colors = [color for color, count in color_counts.items() if count == max_count]
-        
-        # Bei Gleichstand: alle beteiligten Spieler bekommen Punkte
-        points = {}
-        for col in range(self.board.size):
-            tile = self.board.get_tile(row, col)
-            if tile and tile.owner:
-                # Prüfe ob dieser Tile zur dominanten Farbe beiträgt
-                top_value = tile.get_diamond('top')
-                bottom_value = tile.get_diamond('bottom')
-                
-                if top_value in dominant_colors or bottom_value in dominant_colors:
-                    # Sammle Chip ein wenn vorhanden und nicht bereits gesammelt
-                    chip = self.board.get_chip(row, col)
-                    if chip and not chip.is_collected():
-                        if tile.owner not in points:
-                            points[tile.owner] = 0
-                        points[tile.owner] += chip.value
-                        
-                        # Markiere Chip als gesammelt
-                        player = self._get_player_by_color(tile.owner)
-                        if player:
-                            player.collect_chip(chip)
-        
-        return points
+        return row
     
     def _score_column(self, col):
         """
-        Berechnet Punkte für eine vollständige Spalte
-        
-        Args:
-            col: Spalten-Index
-        
-        Returns:
-            dict: {player_color: points}
+        old --- needs deletion
         """
-        color_counts = {}
-        
-        # Zähle Diamanten jeder Farbe in der Spalte
-        for row in range(self.board.size):
-            tile = self.board.get_tile(row, col)
-            if tile:
-                # Zähle die Diamanten die zur Spalte beitragen (links und rechts)
-                left_value = tile.get_diamond('left')
-                right_value = tile.get_diamond('right')
-                
-                color_counts[left_value] = color_counts.get(left_value, 0) + 1
-                color_counts[right_value] = color_counts.get(right_value, 0) + 1
-        
-        # Ermittle die dominante Farbe
-        if not color_counts:
-            return {}
-        
-        max_count = max(color_counts.values())
-        dominant_colors = [color for color, count in color_counts.items() if count == max_count]
-        
-        # Vergebe Punkte
-        points = {}
-        for row in range(self.board.size):
-            tile = self.board.get_tile(row, col)
-            if tile and tile.owner:
-                left_value = tile.get_diamond('left')
-                right_value = tile.get_diamond('right')
-                
-                if left_value in dominant_colors or right_value in dominant_colors:
-                    chip = self.board.get_chip(row, col)
-                    if chip and not chip.is_collected():
-                        if tile.owner not in points:
-                            points[tile.owner] = 0
-                        points[tile.owner] += chip.value
-                        
-                        player = self._get_player_by_color(tile.owner)
-                        if player:
-                            player.collect_chip(chip)
-        
-        return points
+        return col
     
     def _get_player_by_color(self, color):
         """
