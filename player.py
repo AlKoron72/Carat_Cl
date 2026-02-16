@@ -1,6 +1,7 @@
 """
 Player-Klasse für Spielerverwaltung
 """
+import random
 from point_chip import PointChip
 from tile import Tile
 
@@ -102,20 +103,40 @@ class PlayerManager:
         self.player_count = player_count
         self.players = []
         self.current_player_index = 0
+        self.starting_player_index = 0  # Index des Startspielers
         self._setup_players()
+        self._select_starting_player()
     
     def _setup_players(self):
         """Erstellt die Spieler basierend auf der Spielerzahl"""
         colors = ['red', 'blue', 'green', 'yellow']
         names = ['Spieler 1', 'Spieler 2', 'Spieler 3', 'Spieler 4']
-        
+
         for i in range(self.player_count):
             player = Player(names[i], colors[i], is_human=True)
             self.players.append(player)
+
+    def _select_starting_player(self):
+        """Wählt zufällig einen Startspieler aus"""
+        self.starting_player_index = random.randint(0, self.player_count - 1)
+        self.current_player_index = self.starting_player_index
+        print(f"Startspieler: {self.players[self.starting_player_index].name}")
     
     def get_current_player(self):
         """Gibt den aktuellen Spieler zurück"""
         return self.players[self.current_player_index]
+
+    def is_starting_player(self, player_index):
+        """
+        Prüft ob ein Spieler der Startspieler ist
+
+        Args:
+            player_index: Index des Spielers
+
+        Returns:
+            bool: True wenn Startspieler
+        """
+        return player_index == self.starting_player_index
     
     def next_player(self):
         """Wechselt zum nächsten Spieler"""
@@ -124,20 +145,32 @@ class PlayerManager:
     
     def distribute_tiles(self, tiles) -> None:
         """
-        Verteilt Plättchen gleichmäßig an alle Spieler
-        
+        Verteilt Plättchen gleichmäßig an alle Spieler.
+        Der Startspieler erhält das übrig bleibende Tile.
+
         Args:
             tiles: Liste von Tile-Objekten
         """
         tiles_per_player = len(tiles) // self.player_count
-        
+        remaining_tiles = len(tiles) % self.player_count
+
         for i, player in enumerate(self.players):
             start_idx = i * tiles_per_player
             end_idx = start_idx + tiles_per_player
             player_tiles = tiles[start_idx:end_idx]
-            
+
             for tile in player_tiles:
                 player.add_tile(tile)
+
+        # Gebe übrig bleibendes Tile dem Startspieler
+        if remaining_tiles > 0:
+            extra_tile_idx = tiles_per_player * self.player_count
+            extra_tile = tiles[extra_tile_idx]
+            self.players[self.starting_player_index].add_tile(extra_tile)
+            print(f"{self.players[self.starting_player_index].name} erhält das Extra-Tile")
+
+        print(f"Number of tiles distributed: {len(tiles)}")
+        print(f"Tiles per player: {tiles_per_player} (Startspieler +{remaining_tiles})")
     
     def get_winner(self):
         """

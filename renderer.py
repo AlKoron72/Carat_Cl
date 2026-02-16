@@ -3,6 +3,7 @@ Renderer-Klasse für die grafische Darstellung
 """
 import pygame
 import pygame.gfxdraw
+import math
 from board import Board
 from constants import *
 from game import Game
@@ -223,7 +224,36 @@ class Renderer:
 
         # Zeichne geglätteten Rand um das Tortenstück
         pygame.gfxdraw.aapolygon(self.screen, points, color)
-    
+
+    def _draw_star(self, x:int, y:int, radius:int, color:tuple) -> None:
+        """
+        Zeichnet einen 5-zackigen Stern
+
+        Args:
+            x, y: Mittelpunkt
+            radius: Radius (äußere Spitzen)
+            color: RGB-Farbe
+        """
+        inner_radius = radius * 0.4  # Innere Punkte sind 40% des Radius
+        points = []
+
+        # Erstelle 10 Punkte (5 äußere, 5 innere abwechselnd)
+        for i in range(10):
+            angle = math.radians(i * 36 - 90)  # -90 damit Spitze nach oben zeigt
+            if i % 2 == 0:  # Äußere Punkte
+                r = radius
+            else:  # Innere Punkte
+                r = inner_radius
+
+            point_x = x + r * math.cos(angle)
+            point_y = y + r * math.sin(angle)
+            points.append((point_x, point_y))
+
+        # Zeichne gefüllten Stern
+        pygame.gfxdraw.filled_polygon(self.screen, points, color)
+        # Zeichne geglätteten Rand
+        pygame.gfxdraw.aapolygon(self.screen, points, color)
+
     def draw_valid_positions(self, valid_positions):
         """
         Zeichnet markierte gültige Positionen
@@ -280,13 +310,20 @@ class Renderer:
         info_y += 50
         
         # Spielerinformationen
-        for player in game.player_manager.players:
+        for i, player in enumerate(game.player_manager.players):
             is_current = player == game.get_current_player()
-            
+            is_starting = game.player_manager.is_starting_player(i)
+
             # Spielerfarbe
-            pygame.draw.circle(self.screen, PLAYER_COLORS[player.color], 
-                             (info_x + 20, info_y + 15), 15)
-            
+            circle_x = info_x + 20
+            circle_y = info_y + 15
+            pygame.draw.circle(self.screen, PLAYER_COLORS[player.color],
+                             (circle_x, circle_y), 15)
+
+            # Zeichne Stern für Startspieler
+            if is_starting:
+                self._draw_star(circle_x, circle_y, 8, WHITE)
+
             # Name und Punktzahl
             text = f"{player.name}: {player.score} Punkte"
             if is_current:
@@ -294,7 +331,7 @@ class Renderer:
                 color = (0, 150, 0)
             else:
                 color = BLACK
-            
+
             player_text = self.font.render(text, True, color)
             self.screen.blit(player_text, (info_x + 45, info_y))
             
