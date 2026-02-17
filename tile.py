@@ -27,7 +27,7 @@ class Tile:
             # Verwende color_order für die Diamantenwerte
             # Mappe Farben zu Werten: red=1, blue=2, green=3, yellow=4
             color_to_value = {'red': 1, 'blue': 2, 'green': 3, 'yellow': 4}
-            self.diamonds = [color_to_value[self.color_order[i]] for i in range(4)]
+            self.diamonds = [color_to_value[self.color_order[k]] for k in range(4)]
         else:
             if len(diamonds) != 4:
                 raise ValueError("Ein Plättchen muss genau 4 Diamanten haben")

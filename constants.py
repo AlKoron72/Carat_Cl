@@ -54,6 +54,7 @@ BUTTON_HOVER = (120, 170, 220)
 TEXT_COLOR = BLACK
 FONT_SIZE = 24
 TITLE_FONT_SIZE = 36
+ACTIVE_PLAYER_TRIANGLE_COLOR = (220, 220, 220)  # highlight für aktiven Spieler
 
 # Spielzustände
 GAME_STATE_MENU = "menu"

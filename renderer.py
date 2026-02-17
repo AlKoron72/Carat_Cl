@@ -45,7 +45,7 @@ class Renderer:
 
     def draw_chips(self, board):
         """
-        Zeichnet die Punktechips an den Ecken der Tiles
+        Zeichnet die Punktechips an den Ecken der Tiles.
         Sollte als letztes aufgerufen werden, damit Chips im Vordergrund bleiben
 
         Args:
@@ -150,7 +150,7 @@ class Renderer:
     def _draw_chip(self, chip:PointChip, x:int, y:int) -> None:
         """
         Zeichnet einen Punktechip mit optionaler prozentualer Verteilung
-        Ebenen (von unten nach oben): Schatten -> Tortendiagramm -> Dunkelgrauer Hintergrund -> Grauer Rand -> Zahl
+        Ebenen (von unten nach oben): Schatten → Tortendiagramm → Dunkelgrauer Hintergrund → Grauer Rand -> Zahl
 
         Args:
             chip: PointChip-Objekt
@@ -203,7 +203,7 @@ class Renderer:
         """
         import math
 
-        # Konvertiere zu Radiant (pygame verwendet Radiant für Winkel)
+        # Konvertiere zu Radiant (pygame verwendet Radianten für Winkel)
         # -90 damit 0° oben ist statt rechts
         start_rad = math.radians(start_angle - 90)
         end_rad = math.radians(start_angle + angle_size - 90)
@@ -224,6 +224,39 @@ class Renderer:
 
         # Zeichne geglätteten Rand um das Tortenstück
         pygame.gfxdraw.aapolygon(self.screen, points, color)
+
+    def _draw_active_player_triangle(self, circle_x: int, circle_y: int, circle_radius: int) -> None:
+        """
+        Zeichnet ein Dreieck hinter dem Spielerkreis für den aktiven Spieler.
+        Das Dreieck hat die Basis unten und die Spitze oben mittig zum Kreis.
+        Die drei Tangenten um den Kreis bilden das Dreieck.
+
+        Args:
+            circle_x, circle_y: Mittelpunkt des Kreises
+            circle_radius: Radius des Kreises
+        """
+        import math
+
+        # Berechne die drei Tangentenpunkte um den Kreis
+        # Obere Spitze: mittig über dem Kreis
+        top_point = (circle_x, circle_y - circle_radius * 1.8)
+
+        # Untere linke Ecke: Tangente an den Kreis (240°)
+        angle_left = math.radians(240)
+        left_tangent_x = circle_x + circle_radius * math.cos(angle_left)
+        left_tangent_y = circle_y + circle_radius * math.sin(angle_left)
+        bottom_left = (left_tangent_x - 14, left_tangent_y + 26)
+
+        # Untere rechte Ecke: Tangente an den Kreis (300°)
+        angle_right = math.radians(300)
+        right_tangent_x = circle_x + circle_radius * math.cos(angle_right)
+        right_tangent_y = circle_y + circle_radius * math.sin(angle_right)
+        bottom_right = (right_tangent_x + 14, right_tangent_y + 26)
+
+        # Zeichne das Dreieck
+        points = [top_point, bottom_left, bottom_right]
+        pygame.gfxdraw.filled_polygon(self.screen, points, ACTIVE_PLAYER_TRIANGLE_COLOR)
+        pygame.gfxdraw.aapolygon(self.screen, points, ACTIVE_PLAYER_TRIANGLE_COLOR)
 
     def _draw_star(self, x:int, y:int, radius:int, color:tuple) -> None:
         """
@@ -322,8 +355,14 @@ class Renderer:
             # Spielerfarbe
             circle_x = info_x + 20
             circle_y = info_y + 15
+            circle_radius = 15
+
+            # Zeichne Dreieck für aktiven Spieler (hinter dem Kreis)
+            if is_current:
+                self._draw_active_player_triangle(circle_x, circle_y, circle_radius)
+
             pygame.draw.circle(self.screen, PLAYER_COLORS[player.color],
-                             (circle_x, circle_y), 15)
+                             (circle_x, circle_y), circle_radius)
 
             # Zeichne Stern für Startspieler
             if is_starting:
@@ -331,13 +370,7 @@ class Renderer:
 
             # Name und Punktzahl
             text = f"{player.name}: {player.score} Punkte"
-            if is_current:
-                text += " ◄"
-                color = (0, 150, 0)
-            else:
-                color = BLACK
-
-            player_text = self.font.render(text, True, color)
+            player_text = self.font.render(text, True, BLACK)
             self.screen.blit(player_text, (info_x + 45, info_y))
 
             # Verbleibende Plättchen

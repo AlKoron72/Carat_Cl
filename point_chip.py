@@ -116,6 +116,8 @@ class PointChip:
             index: Index des Chips für verschiedene Varianten
         """
         available_colors = list(constants.PLAYER_COLORS.keys())
+        print(f"Adding test distribution for chip {index} ({chip.value} points) with colors {available_colors}")
+
 
         # Verschiedene Verteilungs-Muster
         patterns = [
@@ -129,3 +131,6 @@ class PointChip:
         ]
 
         chip.distribution = patterns[index % len(patterns)]
+
+if __name__ == "__main__":
+    print(PointChip.place_chips_on_board())

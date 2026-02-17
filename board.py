@@ -76,7 +76,7 @@ class Board:
                       col == 0 or col == self.size - 1)
             return not is_edge
 
-        # Prüfe ob es eine gemeinsame Kante mit einem vorhandenen Plättchen gibt
+        # Prüfe, ob es eine gemeinsame Kante mit einem vorhandenen Plättchen gibt
         # Kantennachbarn: horizontal oder vertikal benachbart (NICHT diagonal)
         edge_neighbors = [
             (row - 1, col),  # oben
@@ -114,7 +114,7 @@ class Board:
         # Markiere das Feld als besetzt
         self.placed_tiles[row][col] = 1
 
-        # Aktualisiere die distribution der 4 Ecken-Chips
+        # Aktualisiere die Distribution der 4 Ecken-Chips.
         # Jede Ecke entspricht einer Position im color_order
         chip_data = [
             ((row, col), 0),         # oben links -> color_order[0]
