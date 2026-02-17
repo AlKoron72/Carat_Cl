@@ -161,6 +161,10 @@ class Renderer:
         y = int(y)
         radius = int(CHIP_RADIUS)
 
+        # Update animation wenn aktiv
+        if chip.animation_active:
+            chip.update_animation()
+
         # Ebene 1 (ganz unten): Schatten mit Anti-Aliasing
         pygame.gfxdraw.filled_circle(self.screen, x+OFFSET, y+OFFSET, radius, BLACK)
         pygame.gfxdraw.aacircle(self.screen, x+OFFSET, y+OFFSET, radius, BLACK)
@@ -178,17 +182,61 @@ class Renderer:
                     start_angle += angle
 
         # Ebene 3: Dunkelgrauer Hintergrund (Hauptkreis) mit Anti-Aliasing
-        pygame.gfxdraw.filled_circle(self.screen, x, y, radius, DARK_GRAY)
-        pygame.gfxdraw.aacircle(self.screen, x, y, radius, DARK_GRAY)
+        # Wenn collected: animiere Füllung mit Spielerfarbe von unten nach oben
+        if chip.collected and chip.fill_progress > 0:
+            # Zeichne zunächst normalen Hintergrund
+            pygame.gfxdraw.filled_circle(self.screen, x, y, radius, DARK_GRAY)
+            pygame.gfxdraw.aacircle(self.screen, x, y, radius, DARK_GRAY)
+
+            # Zeichne Füllanimation (von unten nach oben)
+            if chip.collected_by and chip.collected_by in PLAYER_COLORS:
+                fill_color = PLAYER_COLORS[chip.collected_by]
+                fill_height = int(radius * 2 * chip.fill_progress)
+
+                # Erstelle Clipping-Rechteck für Fülleffekt
+                clip_rect = pygame.Rect(x - radius, y + radius - fill_height, radius * 2, fill_height)
+                original_clip = self.screen.get_clip()
+                self.screen.set_clip(clip_rect)
+
+                # Zeichne gefüllten Kreis in Spielerfarbe
+                pygame.gfxdraw.filled_circle(self.screen, x, y, radius, fill_color)
+                pygame.gfxdraw.aacircle(self.screen, x, y, radius, fill_color)
+
+                # Stelle ursprüngliches Clipping wieder her
+                self.screen.set_clip(original_clip)
+        else:
+            pygame.gfxdraw.filled_circle(self.screen, x, y, radius, DARK_GRAY)
+            pygame.gfxdraw.aacircle(self.screen, x, y, radius, DARK_GRAY)
 
         # Ebene 4: Grauer Rand mit Anti-Aliasing (mehrere Kreise für Dicke)
         for i in range(4):
             pygame.gfxdraw.aacircle(self.screen, x, y, radius - i, LIGHT_GRAY)
 
-        # Ebene 5 (ganz oben): Zahl
-        text = self.font.render(str(chip.value), True, WHITE)
-        text_rect = text.get_rect(center=(x, y))
-        self.screen.blit(text, text_rect)
+        # Ebene 5 (ganz oben): Zahl oder Score
+        if chip.collected and chip.text_alpha > 0:
+            # Zeige Score mit Fade-in Animation und Text-Outline
+            score_text = str(chip.score)
+
+            # Zeichne Outline (schwarzer Text an 8 Positionen rundherum)
+            outline_color = BLACK
+            for offset_x, offset_y in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
+                outline = self.font.render(score_text, True, outline_color)
+                if chip.text_alpha < 255:
+                    outline.set_alpha(chip.text_alpha)
+                outline_rect = outline.get_rect(center=(x + offset_x, y + offset_y))
+                self.screen.blit(outline, outline_rect)
+
+            # Zeichne weißen Text in der Mitte
+            text = self.font.render(score_text, True, WHITE)
+            if chip.text_alpha < 255:
+                text.set_alpha(chip.text_alpha)
+            text_rect = text.get_rect(center=(x, y))
+            self.screen.blit(text, text_rect)
+        else:
+            # Normale Anzeige (value)
+            text = self.font.render(str(chip.value), True, WHITE)
+            text_rect = text.get_rect(center=(x, y))
+            self.screen.blit(text, text_rect)
 
     def _draw_pie_slice(self, x:int, y:int, radius:int, start_angle:float, angle_size:float, color:tuple) -> None:
         """

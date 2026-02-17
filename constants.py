@@ -63,6 +63,8 @@ GAME_STATE_GAME_OVER = "game_over"
 
 # Animations-Einstellungen
 ROTATION_ANIMATION_DURATION = 250  # Millisekunden (0.25s)
+CHIP_FILL_ANIMATION_DURATION = 500  # Millisekunden (0.5s)
+CHIP_TEXT_FADE_DURATION = 300  # Millisekunden (0.3s)
 
 if __name__ == "__main__":
     print("Chip-Values: ", CHIP_VALUES, len(CHIP_VALUES), "\n")

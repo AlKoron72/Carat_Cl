@@ -31,6 +31,12 @@ class PointChip:
         self.collected_by = None  # Spielerfarbe
         self.distribution = {}  # Akkumulierte Werte: {'red': 12, 'blue': 8}
         self.distribution_preview = None  # Prozentuale Verteilung für Anzeige (inkl. Vorschau)
+
+        # Animation state
+        self.animation_active = False
+        self.animation_start_time = None
+        self.fill_progress = 0.0  # 0.0 bis 1.0 für Füllanimation
+        self.text_alpha = 0  # 0 bis 255 für Text-Transparenz
     
     def set_position(self, row:int, col:int):
         """Setzt die Position des Chips auf dem Spielfeld"""
@@ -47,7 +53,7 @@ class PointChip:
     def collect(self, player_color):
         """
         Sammelt den Chip für einen Spieler ein
-        
+
         Args:
             player_color: Farbe des Spielers
              'noone' == no one gets points - lost chip and points
@@ -56,10 +62,53 @@ class PointChip:
         self.collected_by = player_color
         # nur hier werden die Werte der Chips berechnet und gespeichert
         self.score = self.value * len(self.distribution)
+
+        # Starte Animation
+        import pygame
+        self.animation_active = True
+        self.animation_start_time = pygame.time.get_ticks()
+        self.fill_progress = 0.0
+        self.text_alpha = 0
     
     def is_collected(self):
         """Prüft, ob der Chip bereits eingesammelt wurde"""
         return self.collected
+
+    def update_animation(self):
+        """
+        Aktualisiert die Animationswerte basierend auf der verstrichenen Zeit
+
+        Returns:
+            bool: True wenn Animation noch läuft, False wenn beendet
+        """
+        if not self.animation_active:
+            return False
+
+        import pygame
+        from constants import CHIP_FILL_ANIMATION_DURATION, CHIP_TEXT_FADE_DURATION
+
+        current_time = pygame.time.get_ticks()
+        elapsed_time = current_time - self.animation_start_time
+
+        # Phase 1: Füllanimation
+        if elapsed_time < CHIP_FILL_ANIMATION_DURATION:
+            self.fill_progress = elapsed_time / CHIP_FILL_ANIMATION_DURATION
+            return True
+
+        # Füllanimation abgeschlossen
+        self.fill_progress = 1.0
+
+        # Phase 2: Text Fade-in
+        TEXT_START = CHIP_FILL_ANIMATION_DURATION
+        if elapsed_time < TEXT_START + CHIP_TEXT_FADE_DURATION:
+            text_elapsed = elapsed_time - TEXT_START
+            self.text_alpha = int(255 * (text_elapsed / CHIP_TEXT_FADE_DURATION))
+            return True
+
+        # Animation abgeschlossen
+        self.text_alpha = 255
+        self.animation_active = False
+        return False
     
     def __repr__(self):
         status = f"collected by {self.collected_by}" if self.collected else "available"
