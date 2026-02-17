@@ -50,9 +50,11 @@ class PointChip:
         
         Args:
             player_color: Farbe des Spielers
+             'noone' == no one gets points - lost chip and points
         """
         self.collected = True
         self.collected_by = player_color
+        # nur hier werden die Werte der Chips berechnet und gespeichert
         self.score = self.value * len(self.distribution)
     
     def is_collected(self):
