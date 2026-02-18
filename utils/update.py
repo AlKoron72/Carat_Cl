@@ -1,6 +1,8 @@
 """
 Update-Funktion für das Carat Spiel
 """
+import pygame
+from constants import ZOOM_ANIMATION_DURATION
 
 
 def update(game_instance):
@@ -13,6 +15,32 @@ def update(game_instance):
     # Update Animation des aktuellen Tiles
     if game_instance.game and game_instance.game.selected_tile:
         game_instance.game.selected_tile.update_animation()
+
+    # Update KI-Züge
+    if game_instance.game:
+        game_instance.game.update_ai()
+
+    # Update Zoom Animation
+    if game_instance.zoom_animating:
+        current_time = pygame.time.get_ticks()
+        elapsed = current_time - game_instance.zoom_animation_start
+
+        if elapsed >= ZOOM_ANIMATION_DURATION:
+            # Animation beendet
+            game_instance.zoom_animation_progress = game_instance.zoom_target
+            game_instance.zoom_animating = False
+        else:
+            # Easing: smooth interpolation
+            t = elapsed / ZOOM_ANIMATION_DURATION
+            # Easing-Funktion (ease-in-out)
+            if t < 0.5:
+                eased_t = 2 * t * t
+            else:
+                eased_t = 1 - pow(-2 * t + 2, 2) / 2
+
+            # Interpoliere zwischen aktuellem und Zielwert
+            start_value = 1.0 - game_instance.zoom_target  # Umkehrwert vom Ziel
+            game_instance.zoom_animation_progress = start_value + (game_instance.zoom_target - start_value) * eased_t
 
 
 def recalculate_chip_distribution(chip):

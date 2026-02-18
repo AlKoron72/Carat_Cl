@@ -1,0 +1,9 @@
+[pygbag]
+# Entry point für die Browser-Version
+main = "main_pygbag.py"
+
+# Optional: Titel für die Web-Seite
+title = "Carat - Brettspiel"
+
+# Optional: Icon
+# icon = "assets/icon.png"

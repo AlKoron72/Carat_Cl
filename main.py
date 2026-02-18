@@ -15,23 +15,32 @@ class CaratGame:
     def __init__(self):
         """Initialisiert PyGame und das Spiel"""
         pygame.init()
-        
+
         # Fenster erstellen
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("Carat - Brettspiel")
-        
+
         # Clock für FPS
         self.clock = pygame.time.Clock()
-        
+
         # Renderer
         self.renderer = Renderer(self.screen)
-        
+
         # Spiel
         self.game = None
         self.running = True
-        
+
         # Maus-State
         self.mouse_pos = (0, 0)
+
+        # Zoom-State
+        self.zoom_active = False
+        self.zoom_surface = None
+        self.zoom_animation_progress = 0.0  # 0.0 = normal, 1.0 = voll gezoomt
+        self.zoom_animation_start = None
+        self.zoom_animating = False
+        self.zoom_target = 0.0  # Zielwert der Animation
+        self.zoom_center = (WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)  # Zoom-Zentrum
     
     
     def run(self):

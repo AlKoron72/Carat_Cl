@@ -13,17 +13,19 @@ class Game:
     Hauptspiellogik für Carat
     """
     
-    def __init__(self, player_count:int=2):
+    def __init__(self, player_count:int=2, ai_enabled_players:list=None):
         """
         Initialisiert ein neues Spiel
-        
+
         Args:
             player_count: Anzahl der Spieler (2-4)
+            ai_enabled_players: Liste von Player-Indizes die KI-gesteuert sind (z.B. [1, 3])
         """
         self.state = None
         self.player_count = player_count
+        self.ai_enabled_players = ai_enabled_players or []
         self.board = Board(BOARD_SIZE)
-        self.player_manager = PlayerManager(player_count)
+        self.player_manager = PlayerManager(player_count, ai_enabled_players=self.ai_enabled_players)
         self.scoring_system = ScoringSystem(self.board, self.player_manager)
         
         self.state = GAME_STATE_MENU
@@ -33,21 +35,34 @@ class Game:
         
         self.game_over = False
         self.winner = None
-        
+
+        # AI-State
+        self.ai_move_timer = None
+        self.ai_animating = False
+        self.ai_animation_start = None
+        self.ai_selected_position = None
+        self.ai_selected_rotation = None
+        self.ai_animation_positions = []  # Liste aller Positionen für Animation
+        self.ai_current_animation_index = 0  # Aktueller Index in der Animation
+        self.ai_last_position_change = None  # Zeitpunkt der letzten Positions-Änderung
+
     def start_game(self):
         """Startet ein neues Spiel"""
         # Erstelle und verteile Plättchen
         tiles = Tile.create_tile_set()
         self.player_manager.distribute_tiles(tiles)
-        
+
         # Setze Spielzustand
         self.state = GAME_STATE_PLAYING
-        
+
         # Wähle das erste Plättchen des ersten Spielers
         self._select_current_player_tile()
-        
+
         # Berechne gültige Positionen
         self.valid_positions = self.board.get_valid_placements()
+
+        # Wenn erster Spieler KI ist, starte KI-Zug
+        self._check_ai_turn()
     
     def _select_current_player_tile(self):
         """Wählt das aktuelle Plättchen des aktuellen Spielers"""
@@ -107,10 +122,13 @@ class Game:
                 # Nächster Spieler
                 self.player_manager.next_player()
                 self._select_current_player_tile()
-                
+
                 # Aktualisiere gültige Positionen
                 self.valid_positions = self.board.get_valid_placements()
-            
+
+                # Prüfe ob nächster Spieler KI ist
+                self._check_ai_turn()
+
             return True
         
         return False
@@ -158,6 +176,85 @@ class Game:
     def reset(self):
         """Setzt das Spiel zurück"""
         self.__init__(self.player_count)
-    
+
+    def _check_ai_turn(self):
+        """Prüft ob aktueller Spieler KI ist und startet KI-Zug"""
+        import pygame
+        import random
+        current_player = self.player_manager.get_current_player()
+        if current_player.is_ai and not current_player.is_npc:
+            # Starte KI-Entscheidung
+            self.ai_move_timer = pygame.time.get_ticks()
+            self.ai_animating = True
+            self.ai_animation_start = pygame.time.get_ticks()
+            self.ai_last_position_change = pygame.time.get_ticks()
+
+            # Lass KI entscheiden
+            row, col, rotation = current_player.ai_controller.decide_placement(
+                self.board, self.selected_tile, self.valid_positions
+            )
+
+            # Setze Rotation
+            for _ in range(rotation):
+                self.selected_tile.rotate_clockwise()
+
+            # Speichere Position
+            self.ai_selected_position = (row, col)
+            self.ai_selected_rotation = rotation
+
+            # Erstelle Animation: Mische gültige Positionen und füge finale Position ans Ende
+            shuffled = list(self.valid_positions)
+            random.shuffle(shuffled)
+            # Entferne finale Position falls sie in der Liste ist
+            if (row, col) in shuffled:
+                shuffled.remove((row, col))
+            # Füge finale Position ans Ende
+            shuffled.append((row, col))
+            self.ai_animation_positions = shuffled
+            self.ai_current_animation_index = 0
+
+    def update_ai(self):
+        """
+        Update-Funktion für KI-Züge. Muss in der Game-Loop aufgerufen werden.
+        Wartet AI_MOVE_DELAY Millisekunden bevor der Zug ausgeführt wird.
+        Animiert das Tile über verschiedene Positionen.
+        """
+        import pygame
+        if self.ai_animating:
+            current_time = pygame.time.get_ticks()
+            elapsed_total = current_time - self.ai_animation_start
+            elapsed_since_change = current_time - self.ai_last_position_change
+
+            # Wechsle Position alle AI_POSITION_CYCLE_TIME Millisekunden
+            if elapsed_since_change >= AI_POSITION_CYCLE_TIME:
+                if self.ai_current_animation_index < len(self.ai_animation_positions) - 1:
+                    self.ai_current_animation_index += 1
+                    self.ai_last_position_change = current_time
+
+            # Führe Zug aus wenn Gesamtzeit abgelaufen ist
+            if elapsed_total >= AI_MOVE_DELAY:
+                # Speichere Position und reset AI State VOR place_tile
+                row, col = self.ai_selected_position
+                self.ai_animating = False
+                self.ai_selected_position = None
+                self.ai_selected_rotation = None
+                self.ai_animation_positions = []
+                self.ai_current_animation_index = 0
+
+                # Führe KI-Zug aus (ruft intern _check_ai_turn für nächsten Spieler auf)
+                self.place_tile(row, col)
+
+    def get_ai_preview_position(self):
+        """
+        Gibt die aktuelle Vorschau-Position für die AI-Animation zurück.
+
+        Returns:
+            tuple: (row, col) oder None
+        """
+        if self.ai_animating and self.ai_animation_positions:
+            if 0 <= self.ai_current_animation_index < len(self.ai_animation_positions):
+                return self.ai_animation_positions[self.ai_current_animation_index]
+        return None
+
     def __repr__(self):
         return f"Game(state={self.state}, current_player={self.get_current_player().name})"

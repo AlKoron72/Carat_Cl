@@ -6,6 +6,7 @@ Konstanten und Konfiguration für Carat Brettspiel
 WINDOW_WIDTH = 1200
 WINDOW_HEIGHT = 900
 FPS = 60
+ZOOM_LEVEL = 1.5  # Zoom-Faktor (z.B. 1.5 = 150%)
 
 # Farben (RGB)
 WHITE = (255, 255, 255)
@@ -65,6 +66,13 @@ GAME_STATE_GAME_OVER = "game_over"
 ROTATION_ANIMATION_DURATION = 250  # Millisekunden (0.25s)
 CHIP_FILL_ANIMATION_DURATION = 500  # Millisekunden (0.5s)
 CHIP_TEXT_FADE_DURATION = 300  # Millisekunden (0.3s)
+ZOOM_ANIMATION_DURATION = 500  # Millisekunden (0.5s)
+AI_MOVE_DELAY = 1000  # Millisekunden (1.0s) - Verzögerung für KI-Züge
+AI_POSITION_CYCLE_TIME = 100  # Millisekunden (0.1s) - Zeit pro Position in der Animation
+
+# KI-Einstellungen
+AI_DIFFICULTY = 'medium'  # 'easy', 'medium', 'hard'
+AI_ENABLED_PLAYERS = []  # Liste von Player-Indizes die KI-gesteuert sind (z.B. [2, 3] für Spieler 3 und 4)
 
 if __name__ == "__main__":
     print("Chip-Values: ", CHIP_VALUES, len(CHIP_VALUES), "\n")

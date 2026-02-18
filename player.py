@@ -11,23 +11,32 @@ class Player:
     Repräsentiert einen Spieler im Spiel
     """
 
-    def __init__(self, name:str, color:str, is_human=True, is_npc=False):
+    def __init__(self, name:str, color:str, is_human=True, is_npc=False, is_ai=False):
         """
         Initialisiert einen Spieler
 
         Args:
             name: Name des Spielers
             color: Farbe des Spielers (z.B. 'red', 'blue')
-            is_human: Ob der Spieler ein Mensch oder KI ist
+            is_human: Ob der Spieler ein Mensch ist
             is_npc: Ob der Spieler ein NPC ist (bekommt keine Tiles, nur Punkte)
+            is_ai: Ob der Spieler von KI gesteuert wird
         """
         self.name = name
         self.color = color
         self.is_human = is_human
         self.is_npc = is_npc
+        self.is_ai = is_ai
         self.score = 0
         self.tiles = []  # Plättchen des Spielers
         self.collected_chips = []  # Eingesammelte Punktechips
+
+        # KI-Instanz wenn KI-Spieler
+        self.ai_controller = None
+        if is_ai:
+            from npc import AIPlayer
+            from constants import AI_DIFFICULTY
+            self.ai_controller = AIPlayer(AI_DIFFICULTY)
     
     def add_tile(self, tile:Tile) -> None:
         """
@@ -92,17 +101,19 @@ class PlayerManager:
     Verwaltet mehrere Spieler und deren Reihenfolge
     """
     
-    def __init__(self, player_count:int =2):
+    def __init__(self, player_count:int =2, ai_enabled_players:list=None):
         """
         Initialisiert den PlayerManager
-        
+
         Args:
-            player_count: Anzahl der Spieler (2-4)
+            player_count: Anzahl der Spieler (1-4)
+            ai_enabled_players: Liste von Player-Indizes die KI-gesteuert sind (z.B. [1, 3])
         """
-        if player_count < 2 or player_count > 4:
-            raise ValueError("Spielerzahl muss zwischen 2 und 4 liegen")
-        
+        if player_count < 1 or player_count > 4:
+            raise ValueError("Spielerzahl muss zwischen 1 und 4 liegen")
+
         self.player_count = player_count
+        self.ai_enabled_players = ai_enabled_players or []
         self.players = []
         self.current_player_index = 0
         self.starting_player_index = 0  # Index des Startspielers
@@ -112,18 +123,20 @@ class PlayerManager:
     def _setup_players(self):
         """
         Erstellt die Spieler basierend auf der Spielerzahl
-        Bei 2-3 Spielern werden zusätzlich NPCs für die fehlenden Farben angelegt
+        Bei 1-3 Spielern werden zusätzlich NPCs für die fehlenden Farben angelegt
         """
         colors = ['red', 'blue', 'green', 'yellow']
         names = ['Spieler 1', 'Spieler 2', 'Spieler 3', 'Spieler 4']
-        npc_names = ['NPC Grün', 'NPC Gelb']
+        npc_names = ['NPC Blau', 'NPC Grün', 'NPC Gelb']
 
         # Erstelle echte Spieler
         for i in range(self.player_count):
-            player = Player(names[i], colors[i], is_human=True, is_npc=False)
+            is_ai = i in self.ai_enabled_players
+            name = f"{names[i]} (KI)" if is_ai else names[i]
+            player = Player(name, colors[i], is_human=(not is_ai), is_npc=False, is_ai=is_ai)
             self.players.append(player)
 
-        # Erstelle NPCs für fehlende Farben (bei 2-3 Spielern)
+        # Erstelle NPCs für fehlende Farben (bei 1-3 Spielern)
         npc_count = 4 - self.player_count
         for i in range(npc_count):
             npc_color_index = self.player_count + i

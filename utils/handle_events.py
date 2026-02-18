@@ -26,10 +26,21 @@ def handle_events(game_instance):
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if game_instance.game.state == GAME_STATE_PLAYING:
-                handle_board_click(game_instance, event.pos)
+                # Blockiere Input während KI am Zug ist
+                if not game_instance.game.ai_animating:
+                    handle_board_click(game_instance, event.pos)
 
         elif event.type == pygame.KEYDOWN:
-            if game_instance.game.state == GAME_STATE_PLAYING:
+            # Zoom Toggle (funktioniert immer während des Spiels)
+            if event.key == pygame.K_z and game_instance.game:
+                game_instance.zoom_active = not game_instance.zoom_active
+                game_instance.zoom_animating = True
+                game_instance.zoom_animation_start = pygame.time.get_ticks()
+                game_instance.zoom_target = 1.0 if game_instance.zoom_active else 0.0
+                # Speichere aktuelle Mausposition als Zoom-Zentrum
+                game_instance.zoom_center = game_instance.mouse_pos
+
+            if game_instance.game.state == GAME_STATE_PLAYING and not game_instance.game.ai_animating:
                 if event.key == pygame.K_r:
                     # Debug: Zeige Status vor Rotation
                     #print(f"\n=== ROTATION CLOCKWISE ===")

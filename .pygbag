@@ -1,0 +1,7 @@
+# Pygbag ignore patterns (wie .gitignore)
+.venv/
+__pycache__/
+*.pyc
+.git/
+.idea/
+*.md
