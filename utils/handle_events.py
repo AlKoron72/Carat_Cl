@@ -122,9 +122,10 @@ def handle_events(game_instance):
 
             elif game_instance.game.state == GAME_STATE_GAME_OVER:
                 if event.key == pygame.K_SPACE:
-                    # Neues Spiel starten
+                    # Neues Spiel starten mit gleichen Einstellungen
                     player_count = game_instance.game.player_count
-                    game_instance.game = Game(player_count)
+                    ai_enabled = game_instance.game.ai_enabled_players
+                    game_instance.game = Game(player_count, ai_enabled_players=ai_enabled)
                     game_instance.game.start_game()
                 elif event.key == pygame.K_ESCAPE:
                     # Zurück zum Menü

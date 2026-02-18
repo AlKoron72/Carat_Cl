@@ -486,20 +486,25 @@ class Renderer:
     
     def draw_game_over(self, game:Game) -> None:
         """
-        Zeichnet den Game-Over Bildschirm
-        
+        Zeichnet den Game-Over Bildschirm (nur rechts neben dem Board)
+
         Args:
             game: Game-Objekt
         """
-        # Semi-transparenter Overlay
-        overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
+        # Semi-transparenter Overlay nur rechts neben dem Board
+        overlay_x = BOARD_OFFSET_X + BOARD_SIZE * CELL_SIZE
+        overlay_width = WINDOW_WIDTH - overlay_x
+        overlay = pygame.Surface((overlay_width, WINDOW_HEIGHT))
         overlay.set_alpha(200)
         overlay.fill(BLACK)
-        self.screen.blit(overlay, (0, 0))
-        
+        self.screen.blit(overlay, (overlay_x, 0))
+
+        # Zentriere alles in der rechten Overlay-Fläche
+        center_x = overlay_x + overlay_width // 2
+
         # Titel
         title = self.title_font.render("Spiel beendet!", True, WHITE)
-        title_rect = title.get_rect(center=(WINDOW_WIDTH // 2, 150))
+        title_rect = title.get_rect(center=(center_x, 150))
         self.screen.blit(title, title_rect)
         
         # Rangliste
@@ -512,7 +517,7 @@ class Renderer:
             color = PLAYER_COLORS[player.color]
 
             text = self.font.render(rank_text, True, color)
-            text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, y))
+            text_rect = text.get_rect(center=(center_x, y))
             self.screen.blit(text, text_rect)
 
             y += 40
@@ -521,7 +526,7 @@ class Renderer:
         if leaderboard['npcs']:
             y += 20
             line_width = 300
-            line_x = (WINDOW_WIDTH - line_width) // 2
+            line_x = center_x - line_width // 2
             pygame.draw.line(self.screen, WHITE, (line_x, y), (line_x + line_width, y), 2)
             y += 40
 
@@ -531,12 +536,12 @@ class Renderer:
                 color = PLAYER_COLORS[player.color]
 
                 text = self.font.render(rank_text, True, color)
-                text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, y))
+                text_rect = text.get_rect(center=(center_x, y))
                 self.screen.blit(text, text_rect)
 
                 y += 40
-        
+
         # Neustart-Hinweis
         hint = self.font.render("Drücke SPACE für ein neues Spiel", True, WHITE)
-        hint_rect = hint.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 100))
+        hint_rect = hint.get_rect(center=(center_x, WINDOW_HEIGHT - 100))
         self.screen.blit(hint, hint_rect)
