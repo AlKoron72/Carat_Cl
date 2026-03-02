@@ -31,8 +31,8 @@ def render(game_instance):
         # Zeichne gültige Positionen
         game_instance.renderer.draw_valid_positions(game_instance.game.valid_positions)
 
-        # Zeichne Spielerinfo
-        game_instance.renderer.draw_player_info(game_instance.game)
+        # Zeichne Spielerinfo (mit Hover-Tooltip)
+        game_instance.renderer.draw_player_info(game_instance.game, game_instance.hovered_player)
 
         # Zeichne aktuelles Plättchen
         if game_instance.game.selected_tile:

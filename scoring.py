@@ -91,7 +91,7 @@ class ScoringSystem:
                 # find player and add score of chip
                 if chip.collected_by != "noone":
                     add_score_for_player = self._get_player_by_color(chip.collected_by)
-                    add_score_for_player.score += chip.score
+                    add_score_for_player.collect_chip(chip)
 
                 # implement score here
                 # at this point player-color not in play produce errors
@@ -108,7 +108,7 @@ class ScoringSystem:
 
                 # find player and add score of chip
                 add_score_for_player = self._get_player_by_color(chip.collected_by)
-                add_score_for_player.score += chip.score
+                add_score_for_player.collect_chip(chip)
 
     def _get_player_by_color(self, color: str) -> Player | None:
         """

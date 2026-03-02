@@ -335,6 +335,51 @@ class Renderer:
         # Zeichne geglätteten Rand
         pygame.gfxdraw.aapolygon(self.screen, points, color)
 
+    def _draw_player_chip_tooltip(self, player, x:int, y:int) -> None:
+        """
+        Zeichnet einen Tooltip mit allen gesammelten Chips eines Spielers
+
+        Args:
+            player: Player-Objekt
+            x: X-Position (links vom Tooltip)
+            y: Y-Position (oben vom Tooltip)
+        """
+        if not player.collected_chips:
+            return
+
+        # Sortiere Chips nach Score (absteigend)
+        sorted_chips = sorted(player.collected_chips, key=lambda c: c.score, reverse=True)
+
+        # Berechne Tooltip-Größe
+        padding = 10
+        line_height = 25
+        tooltip_width = 180
+        tooltip_height = padding * 2 + len(sorted_chips) * line_height + 10  # +10 für Überschrift
+
+        # Tooltip-Hintergrund (semi-transparent)
+        tooltip_surface = pygame.Surface((tooltip_width, tooltip_height))
+        tooltip_surface.set_alpha(230)
+        tooltip_surface.fill(WHITE)
+
+        # Rahmen
+        pygame.draw.rect(tooltip_surface, BLACK, (0, 0, tooltip_width, tooltip_height), 2)
+
+        # Überschrift
+        header_text = self.font.render("Gewonnene Chips:", True, BLACK)
+        tooltip_surface.blit(header_text, (padding, padding))
+
+        # Chips auflisten
+        current_y = padding + 25
+        for chip in sorted_chips:
+            # Chip-Wert und Score
+            chip_info = f"Chip {chip.value}: {chip.score} Punkte"
+            chip_text = self.font.render(chip_info, True, DARK_GRAY)
+            tooltip_surface.blit(chip_text, (padding + 10, current_y))
+            current_y += line_height
+
+        # Zeichne Tooltip auf Screen
+        self.screen.blit(tooltip_surface, (x, y))
+
     def draw_valid_positions(self, valid_positions):
         """
         Zeichnet markierte gültige Positionen
@@ -375,12 +420,13 @@ class Renderer:
             tile_surface.set_alpha(150)
             self.screen.blit(tile_surface, (x, y))
     
-    def draw_player_info(self, game):
+    def draw_player_info(self, game, hovered_player_index=None):
         """
         Zeichnet Spielerinformationen (Punktestand, aktueller Spieler)
 
         Args:
             game: Game-Objekt
+            hovered_player_index: Index des Spielers über dem die Maus schwebt (für Tooltip)
         """
         info_x = BOARD_OFFSET_X + BOARD_SIZE * CELL_SIZE + 50
         info_y = BOARD_OFFSET_Y
@@ -399,6 +445,7 @@ class Renderer:
             player_index = game.player_manager.players.index(player)
             is_current = player == game.get_current_player()
             is_starting = game.player_manager.is_starting_player(player_index)
+            is_hovered = hovered_player_index == player_index
 
             # Spielerfarbe
             circle_x = info_x + 20
@@ -424,6 +471,10 @@ class Renderer:
             # Verbleibende Plättchen
             tiles_text = self.font.render(f"Plättchen: {player.get_tile_count()}", True, BLACK)
             self.screen.blit(tiles_text, (info_x + 45, info_y + 25))
+
+            # Zeichne Tooltip wenn gehovert
+            if is_hovered and len(player.collected_chips) > 0:
+                self._draw_player_chip_tooltip(player, info_x + 300, info_y)
 
             info_y += 70
 

@@ -32,6 +32,7 @@ class CaratGame:
 
         # Maus-State
         self.mouse_pos = (0, 0)
+        self.hovered_player = None  # Index des Spielers über dem der Cursor schwebt
 
         # Zoom-State
         self.zoom_active = False

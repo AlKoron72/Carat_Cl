@@ -65,13 +65,13 @@ class Player:
     def collect_chip(self, chip:PointChip) -> None:
         """
         Sammelt einen Punktechip ein
-        
+        HINWEIS: chip.collect(color) sollte bereits vorher aufgerufen worden sein!
+
         Args:
             chip: PointChip-Objekt
         """
-        chip.collect(self.color)
         self.collected_chips.append(chip)
-        self.score += chip.value
+        self.score += chip.score
     
     def get_score(self):
         """Gibt die aktuelle Punktzahl zurück"""

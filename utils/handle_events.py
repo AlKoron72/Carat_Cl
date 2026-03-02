@@ -10,6 +10,39 @@ import utils.render
 from utils.update import reset_chip_preview
 
 
+def _get_hovered_player_index(mouse_pos, game):
+    """
+    Ermittelt über welchem Spieler-Eintrag die Maus schwebt
+
+    Args:
+        mouse_pos: (x, y) Mausposition
+        game: Game-Objekt
+
+    Returns:
+        int: Index des Spielers oder None
+    """
+    info_x = BOARD_OFFSET_X + BOARD_SIZE * CELL_SIZE + 50
+    info_y = BOARD_OFFSET_Y + 50  # Nach Überschrift
+
+    mouse_x, mouse_y = mouse_pos
+
+    # Prüfe nur echte Spieler
+    real_players = [p for p in game.player_manager.players if not p.is_npc]
+
+    for i, player in enumerate(real_players):
+        # Jeder Spieler-Eintrag ist 70 Pixel hoch
+        entry_top = info_y + i * 70
+        entry_bottom = entry_top + 70
+        entry_left = info_x
+        entry_right = info_x + 300  # Breite des Eintrags
+
+        if entry_left <= mouse_x <= entry_right and entry_top <= mouse_y <= entry_bottom:
+            player_index = game.player_manager.players.index(player)
+            return player_index
+
+    return None
+
+
 def handle_events(game_instance):
     """
     Verarbeitet Eingaben
@@ -23,6 +56,9 @@ def handle_events(game_instance):
 
         elif event.type == pygame.MOUSEMOTION:
             game_instance.mouse_pos = event.pos
+            # Überprüfe ob Maus über einem Spieler-Eintrag schwebt
+            if game_instance.game and game_instance.game.state == GAME_STATE_PLAYING:
+                game_instance.hovered_player = _get_hovered_player_index(event.pos, game_instance.game)
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if game_instance.game.state == GAME_STATE_PLAYING:
