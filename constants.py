@@ -72,7 +72,7 @@ AI_POSITION_CYCLE_TIME = 100  # Millisekunden (0.1s) - Zeit pro Position in der 
 
 # KI-Einstellungen
 AI_DIFFICULTY = 'medium'  # 'easy', 'medium', 'hard'
-AI_ENABLED_PLAYERS = []  # Liste von Player-Indizes die KI-gesteuert sind (z.B. [2, 3] für Spieler 3 und 4)
+AI_ENABLED_PLAYERS = []  # Liste von Player-Indizes, die KI-gesteuert sind (z. B. [2, 3] für Spieler 3 und 4)
 
 if __name__ == "__main__":
     print("Chip-Values: ", CHIP_VALUES, len(CHIP_VALUES), "\n")
