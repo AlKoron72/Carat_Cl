@@ -40,14 +40,16 @@ Sammle die meisten Punkte, indem du Plättchen auf dem 7×7-Spielfeld platzierst
 ### Punktechips
 
 - An jeder Feldecke liegt ein Punktechip mit einem Wert von **1–6 Punkten**.
-- Jeder Chip grenzt an 1, 2 oder 4 Felder:
-  - **Ecken** des Spielfelds: 1 Nachbarfeld
-  - **Ränder** des Spielfelds: 2 Nachbarfelder
-  - **Innenfelder**: 4 Nachbarfelder
-- Wenn alle Nachbarfelder eines Chips belegt sind, wird der Chip **ausgewertet**.
+- Je nach Position hat ein Chip 1, 2 oder 4 mögliche Nachbarfelder:
+  - **Spielfeld-Ecken**: 1 Nachbarfeld – Chip wird nach dem ersten anliegenden Plättchen gewertet
+  - **Spielfeld-Ränder**: 2 Nachbarfelder – Chip wird gewertet, sobald beide Felder belegt sind
+  - **Innenfelder**: 4 Nachbarfelder – Chip wird gewertet, sobald alle vier Felder belegt sind
+- Ein Chip wird also genau dann ausgewertet, wenn **keine weiteren Plättchen mehr um ihn platziert werden können**.
 - Jedes Plättchen hat 4 farbige Diamanten. Deren Farbwerte akkumulieren sich im jeweiligen Chip.
 - Die Farbe mit dem **höchsten Gesamtwert** gewinnt den Chip.
-- Bei **Gleichstand** unter den Spitzenfarben gewinnt niemand – der Chip bleibt unverteilt.
+- Bei **Gleichstand** unter den Spitzenfarben rückt der nächste in der Reihe nach:
+  - Haben z. B. zwei Farben je 6 Punkte und eine weitere 5, gewinnt die Farbe mit 5 den Chip.
+  - Sind auch die nächsten Farben gleichauf, verfällt der Chip – niemand erhält Punkte.
 - **Punkteberechnung**: `Chipwert × Anzahl beteiligter Farben`
 
 ### Spielende
